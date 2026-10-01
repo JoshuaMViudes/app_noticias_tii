@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 void main() {
   runApp(
     MaterialApp(
-      title: 'Portal Noticias',
+      title: 'Portal Notícias',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.white),
