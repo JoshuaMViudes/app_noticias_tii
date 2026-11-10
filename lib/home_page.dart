@@ -1,8 +1,10 @@
 import 'package:app_noticias_tii/detalhe_noticia_page.dart';
+import 'package:app_noticias_tii/login_page.dart';
 import 'package:app_noticias_tii/models/categoria.dart';
 import 'package:app_noticias_tii/models/noticia.dart';
 import 'package:app_noticias_tii/services/categoria_service.dart';
 import 'package:app_noticias_tii/services/noticia_service.dart';
+import 'package:app_noticias_tii/sobre_page.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
@@ -15,10 +17,9 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final NoticiaService _noticiaService = NoticiaService();
   late Future<List<Noticia>> _listaNoticias;
+
   final CategoriaService _categoriaService = CategoriaService();
-
   List<Categoria> _listaCategorias = [];
-
   String _categoriaSelecionada = 'Todas';
 
   String _textoPesquisa = '';
@@ -38,7 +39,7 @@ class _HomePageState extends State<HomePage> {
         _listaCategorias = categorias;
       });
     } catch (e) {
-      debugPrint('Erro ao carregar a categoria: $e');
+      debugPrint('Erro ao carregar a categorias: $e');
     }
   }
 
@@ -99,6 +100,7 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
+
       drawer: Drawer(
         child: ListView(
           children: [
@@ -108,9 +110,44 @@ class _HomePageState extends State<HomePage> {
               ),
               child: Image.asset('assets/img/logotipo.png'),
             ),
+
+            ListTile(
+              leading: const Icon(Icons.home),
+              title: const Text('Início'),
+              onTap: () => Navigator.pop(context),
+            ),
+
+            ListTile(
+              leading: const Icon(Icons.info),
+              title: const Text('Sobre'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SobrePage()),
+                );
+              },
+            ),
+
+            const Divider(),
+
+            ListTile(
+              leading: const Icon(Icons.info),
+              title: const Text('Entrar'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginPage()),
+                );
+              },
+            ),
+
+            //Sobre
           ],
         ),
       ),
+
       body: Column(
         children: [
           SizedBox(
@@ -188,6 +225,7 @@ class _HomePageState extends State<HomePage> {
                   itemCount: noticias.length,
                   itemBuilder: (context, index) {
                     final noticia = noticias[index];
+
                     return InkWell(
                       onTap: () => Navigator.push(
                         context,
@@ -196,6 +234,7 @@ class _HomePageState extends State<HomePage> {
                               DetalheNoticiaPage(noticia: noticia),
                         ),
                       ),
+
                       child: Card(
                         margin: const EdgeInsets.only(bottom: 12),
                         color: Colors.white,
@@ -213,12 +252,14 @@ class _HomePageState extends State<HomePage> {
                               width: double.infinity,
                               height: 120,
                               color: const Color(0xFFE4E9EF),
-                              child: Image.network(
-                                noticia.imagem!,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, erro, stackTrace) =>
-                                    const Icon(Icons.image_outlined),
-                              ),
+                              child: noticia.imagem != null
+                                  ? Image.network(
+                                      noticia.imagem!,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, erro, stack) =>
+                                          const Icon(Icons.image_outlined),
+                                    )
+                                  : const Icon(Icons.image_outlined),
                             ),
                             Padding(
                               padding: const EdgeInsets.all(12),
@@ -242,6 +283,7 @@ class _HomePageState extends State<HomePage> {
                                           style: const TextStyle(fontSize: 11),
                                         ),
                                       ),
+
                                       const SizedBox(
                                         width: 15,
                                       ),
