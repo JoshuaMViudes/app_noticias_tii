@@ -23,13 +23,15 @@ class LoginServices {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', token);
         await prefs.setString('nome', nome);
+
+        return nome;
       }
 
       if (resposta.statusCode == 401 || resposta.statusCode == 422) {
-        throw Exception('E-mail ou Senha Inválidos');
+        throw ('E-mail ou Senha Inválidos');
       }
     } catch (e) {
-      throw Exception('Erro de Conexão: $e');
+      throw Exception('$e');
     }
 
     return '';
