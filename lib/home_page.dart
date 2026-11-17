@@ -1,3 +1,4 @@
+import 'package:app_noticias_tii/cadastrar_noticia_page.dart';
 import 'package:app_noticias_tii/detalhe_noticia_page.dart';
 import 'package:app_noticias_tii/login_page.dart';
 import 'package:app_noticias_tii/models/categoria.dart';
@@ -145,6 +146,20 @@ class _HomePageState extends State<HomePage> {
             ),
 
             const Divider(),
+            if (_logado)
+              ListTile(
+                leading: const Icon(Icons.newspaper),
+                title: const Text('Cadastrar Notícia'),
+                onTap: () async {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const CadastrarNoticiaPage(),
+                    ),
+                  );
+                },
+              ),
             if (_logado)
               ListTile(
                 leading: const Icon(Icons.logout),
