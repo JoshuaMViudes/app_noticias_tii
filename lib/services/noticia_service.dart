@@ -66,6 +66,7 @@ class NoticiaService {
     required String resumo,
     required String conteudo,
     required int categoriaId,
+    required int ativo,
     File? imagemArquivo,
   }) async {
     try {
@@ -83,7 +84,7 @@ class NoticiaService {
         request.fields['resumo'] = resumo;
         request.fields['conteudo'] = conteudo;
         request.fields['categoria_id'] = categoriaId.toString();
-        //Adicionar o Campo Ativo
+        request.fields['ativo'] = ativo.toString();
         request.files.add(
           await http.MultipartFile.fromPath('imagem', imagemArquivo.path),
         );
