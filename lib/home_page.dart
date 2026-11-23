@@ -78,6 +78,116 @@ class _HomePageState extends State<HomePage> {
     return noticias;
   }
 
+  // Mostra uma mensagem rápida (SnackBar) na parte de baixo da tela.
+  void _mostrarMensagem(String texto) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(texto)),
+    );
+  }
+
+  // Cria um novo Future para o FutureBuilder: ele refaz o GET e redesenha a lista.
+  void _recarregarNoticias() {
+    setState(() {
+      _listaNoticias = _noticiaService.getNoticia();
+    });
+  }
+
+  // Abre o formulário. noticia == null: cadastro. noticia != null: edição.
+  Future<void> _abrirFormulario({Noticia? noticia}) async {
+    // O formulário fecha com Navigator.pop(context, true) quando salva.
+    final salvou = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CadastrarNoticiaPage(noticia: noticia),
+      ),
+    );
+
+    if (salvou == true && mounted) {
+      _recarregarNoticias();
+      _mostrarMensagem(
+        noticia == null
+            ? 'Notícia cadastrada com sucesso.'
+            : 'Notícia atualizada com sucesso.',
+      );
+    }
+  }
+
+  // Menu inferior exibido no toque longo do card.
+  void _abrirMenuOpcoes(Noticia noticia) {
+    // A API só aceita editar/excluir com token; sem login daria erro 401.
+    if (!_logado) {
+      _mostrarMensagem('Entre na sua conta para editar ou excluir notícias.');
+      return;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      builder: (contextSheet) => SafeArea(
+        child: Column(
+          mainAxisSize:
+              MainAxisSize.min, // altura = só o que o conteúdo precisa
+          children: [
+            ListTile(
+              leading: const Icon(Icons.edit),
+              title: const Text('Editar'),
+              onTap: () {
+                Navigator.pop(contextSheet); // fecha o menu
+                _abrirFormulario(noticia: noticia); // abre o form preenchido
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete, color: Colors.red),
+              title: const Text('Excluir', style: TextStyle(color: Colors.red)),
+              onTap: () {
+                Navigator.pop(contextSheet);
+                _confirmarExclusao(noticia);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Pede confirmação antes de apagar e depois chama o service.
+  Future<void> _confirmarExclusao(Noticia noticia) async {
+    final confirmou = await showDialog<bool>(
+      context: context,
+      builder: (contextDialog) => AlertDialog(
+        title: const Text('Excluir notícia'),
+        content: Text('Deseja realmente excluir "${noticia.titulo}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(contextDialog, false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(contextDialog, true),
+            child: const Text(
+              'Excluir',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    // Fechou o diálogo fora dos botões (null) ou clicou Cancelar (false).
+    if (confirmou != true) return;
+
+    try {
+      await _noticiaService.excluirNoticia(noticia.id);
+      if (!mounted) return;
+      _recarregarNoticias();
+      _mostrarMensagem('Notícia excluída com sucesso.');
+    } catch (e) {
+      if (!mounted) return;
+      _mostrarMensagem(
+        e.toString().replaceFirst(RegExp(r'^(Exception: )+'), ''),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -150,14 +260,9 @@ class _HomePageState extends State<HomePage> {
               ListTile(
                 leading: const Icon(Icons.newspaper),
                 title: const Text('Cadastrar Notícia'),
-                onTap: () async {
+                onTap: () {
                   Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const CadastrarNoticiaPage(),
-                    ),
-                  );
+                  _abrirFormulario();
                 },
               ),
             if (_logado)
@@ -274,6 +379,7 @@ class _HomePageState extends State<HomePage> {
                     final noticia = noticias[index];
 
                     return InkWell(
+                      onLongPress: () => _abrirMenuOpcoes(noticia),
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
